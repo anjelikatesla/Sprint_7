@@ -22,6 +22,8 @@ public class CreateOrderTest extends BaseTest {
     private final String[] color;
     private int track;
 
+    private final OrderClient orderClient = new OrderClient();
+
     public CreateOrderTest(String[] color) {
         this.color = color;
     }
@@ -38,14 +40,12 @@ public class CreateOrderTest extends BaseTest {
 
     @After
     public void afterMethod() {
-        OrderClient orderClient = new OrderClient();
         orderClient.cancelOrder(track);
     }
 
     @Test
     @DisplayName("Check response when data is valid")
     public void testCheckResponseCreateOrderWithValidData() {
-        OrderClient orderClient = new OrderClient();
         Order order = new Order(color);
         order.setUpFieldsForRequest();
         Response response = orderClient.getResponseForOrders(order);

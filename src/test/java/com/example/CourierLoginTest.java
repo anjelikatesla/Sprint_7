@@ -21,15 +21,15 @@ public class CourierLoginTest extends BaseTest {
 
     private Courier courier;
 
+    private final CourierClient courierClient = new CourierClient();
+
     @Before
     public void setUp() {
-        CourierClient courierClient = new CourierClient();
         courier = courierClient.registerCourier();
     }
 
     @After
     public void afterMethod() {
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForRegisterRequest(courier);
         JsonPath jsonPath = new JsonPath(response.asString());
         String userId = jsonPath.getString("id");
@@ -39,7 +39,6 @@ public class CourierLoginTest extends BaseTest {
     @Test
     @DisplayName("Check response for correct login and password")
     public void testResponseForCorrectLoginData() {
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForLoginRequest(courier);
         response.then().assertThat().statusCode(HttpURLConnection.HTTP_OK).and().assertThat().body("id", notNullValue());
     }
@@ -47,7 +46,6 @@ public class CourierLoginTest extends BaseTest {
     @Test
     @DisplayName("Check response for incorrect login")
     public void testResponseForIncorrectLogin() {
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForLoginRequest(new Courier("incorrectLogin", courier.getPassword()));
         response.then().assertThat().statusCode(HttpURLConnection.HTTP_NOT_FOUND).and().assertThat().body("message", equalTo("Учетная запись не найдена"));
     }
@@ -55,7 +53,6 @@ public class CourierLoginTest extends BaseTest {
     @Test
     @DisplayName("Check response for incorrect password")
     public void testResponseForIncorrectPassword() {
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForLoginRequest(new Courier(courier.getLogin(), "incorrectPassword"));
         response.then().assertThat().statusCode(HttpURLConnection.HTTP_NOT_FOUND).and().assertThat().body("message", equalTo("Учетная запись не найдена"));
     }
@@ -65,7 +62,6 @@ public class CourierLoginTest extends BaseTest {
     public void testResponseForNonExistsCourier() {
         String randomWord = RandomStringUtils.randomAlphabetic(10);
         Courier courier = new Courier(randomWord, randomWord);
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForLoginRequest(courier);
         response.then().assertThat().statusCode(HttpURLConnection.HTTP_NOT_FOUND).and().assertThat().body("message", equalTo("Учетная запись не найдена"));
     }
@@ -73,7 +69,6 @@ public class CourierLoginTest extends BaseTest {
     @Test
     @DisplayName("Check response for login without login field")
     public void testResponseForAuthWithoutLoginField() {
-        CourierClient courierClient = new CourierClient();
         String password = "pass";
         String registerBody = "{\"password\":\"" + password + "\"}";
         Response response = courierClient.getResponseForLoginWithCustomRequest(registerBody);

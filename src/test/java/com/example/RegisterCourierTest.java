@@ -20,10 +20,11 @@ public class RegisterCourierTest extends BaseTest {
     final private String password = RandomStringUtils.randomAlphabetic(10);
     final private String firstName = RandomStringUtils.randomAlphabetic(10);
 
+    private final CourierClient courierClient = new CourierClient();
+
     @After
     public void afterMethod() {
         Courier courier = new Courier(login, password);
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForRegisterRequest(courier);
         JsonPath jsonPath = new JsonPath(response.asString());
         String userId = jsonPath.getString("id");
@@ -34,7 +35,6 @@ public class RegisterCourierTest extends BaseTest {
     @DisplayName("Check response for create courier with valid data")
     public void testCreateCourierWithValidData() {
         Courier courier = new Courier(login, password, firstName);
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForRegisterRequest(courier);
         response.then()
                 .assertThat()
@@ -46,10 +46,17 @@ public class RegisterCourierTest extends BaseTest {
     @Test
     @DisplayName("Check response for create courier duplicate")
     public void testCreateDuplicateCourier() {
-        CourierClient courierClient = new CourierClient();
-        Courier courier = courierClient.registerCourier();
-        Response response = courierClient.getResponseForRegisterRequest(courier);
-        response.then()
+        Courier courier = new Courier(login, password, firstName);
+        // Первая регистрация курьера
+        Response firstRegistrationResponse = courierClient.getResponseForRegisterRequest(courier);
+        firstRegistrationResponse.then()
+                .assertThat()
+                .statusCode(HttpURLConnection.HTTP_CREATED)
+                .and()
+                .body("ok", equalTo(true));
+        // Повторная регистрация курьера с теми же данными
+        Response secondRegistrationResponse = courierClient.getResponseForRegisterRequest(courier);
+        secondRegistrationResponse.then()
                 .assertThat()
                 .statusCode(HttpURLConnection.HTTP_CONFLICT)
                 .and()
@@ -61,7 +68,6 @@ public class RegisterCourierTest extends BaseTest {
     public void testCreateCourierWithoutFillInPassword() {
         String registerBody = "{\"login\":\"" + login + "\","
                 + "\"firstName\":\"" + firstName + "\"}";
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForRegisterWithCustomBodyRequest(registerBody);
         response.then()
                 .assertThat()
@@ -75,7 +81,6 @@ public class RegisterCourierTest extends BaseTest {
     public void testCreateCourierWithoutFillInLogin() {
         String registerBody = "{\"password\":\"" + password + "\","
                 + "\"firstName\":\"" + firstName + "\"}";
-        CourierClient courierClient = new CourierClient();
         Response response = courierClient.getResponseForRegisterWithCustomBodyRequest(registerBody);
         response.then()
                 .assertThat()
